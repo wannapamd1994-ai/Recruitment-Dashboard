@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruitment Dashboard 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f6f9; --card:#fff; --border:#e2e8f0; --text:#1a202c; --muted:#718096;
+  --open:#3b82f6; --hired:#22c55e; --hold:#f59e0b; --over:#ef4444;
+  --tmk:#6366f1; --tmk2:#a78bfa; --ptc:#06b6d4; --ff:#f59e0b; --pte:#ec4899; --clca:#10b981;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'IBM Plex Sans Thai',sans-serif; font-size:14px; }
+
+.page { max-width:1200px; margin:0 auto; padding:16px; }
+
+/* ── HEADER ── */
+.header { background:var(--card); border:1.5px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+.header h1 { font-size:17px; font-weight:700; }
+.header p  { font-size:12px; color:var(--muted); margin-top:3px; }
+.kpi-row { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+.ki { text-align:center; background:var(--bg); border-radius:8px; padding:8px 14px; flex:1; min-width:60px; }
+.kv { font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:700; line-height:1; }
+.kl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+
+/* ── TABS ── */
+.tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.tab { padding:7px 16px; border-radius:8px; border:1.5px solid var(--border); cursor:pointer;
+       font-size:13px; font-weight:600; color:var(--muted); background:var(--card); transition:.15s; }
+.tab.active { background:var(--text); color:#fff; border-color:var(--text); }
+
+/* ── VIEWS ── */
+.view { display:none; }
+.view.active { display:block; }
+
+/* ── SECTION LABEL ── */
+.sec-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
+             color:var(--muted); margin-bottom:8px; margin-top:4px; }
+
+/* ── GRID ── */
+.grid { display:grid; gap:10px; margin-bottom:12px; }
+.g2 { grid-template-columns:1fr 1fr; }
+.g3 { grid-template-columns:1fr 1fr 1fr; }
+.g6 { grid-template-columns:repeat(6,1fr); }
+@media(max-width:700px){
+  .g2,.g3,.g6 { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:420px){
+  .g2,.g3 { grid-template-columns:1fr; }
+  .g6 { grid-template-columns:1fr 1fr; }
+}
+
+/* ── CARD ── */
+.card { background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:14px; }
+.card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+              color:var(--muted); margin-bottom:10px; }
+
+/* ── CHART ── */
+.chart-box { position:relative; width:100%; }
+
+/* ── COMPANY MINI CARD ── */
+.co-card { background:var(--card); border:1.5px solid var(--border); border-radius:10px;
+           padding:10px 12px; position:relative; overflow:hidden; }
+.co-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.co-tmk::before  { background:var(--tmk); }
+.co-tmk2::before { background:var(--tmk2); }
+.co-ptc::before  { background:var(--ptc); }
+.co-ff::before   { background:var(--ff); }
+.co-pte::before  { background:var(--pte); }
+.co-clca::before { background:var(--clca); }
+.co-name  { font-size:13px; font-weight:700; margin-bottom:2px; }
+.co-total { font-size:10px; color:var(--muted); margin-bottom:8px; }
+.co-nums  { display:flex; gap:0; margin-bottom:6px; }
+.co-n     { flex:1; text-align:center; }
+.co-nv    { font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:700; line-height:1; }
+.co-nl    { font-size:9px; color:var(--muted); }
+.bar-track { display:flex; height:6px; border-radius:3px; overflow:hidden; gap:1px; }
+.bar-seg   { }
+.co-days  { font-size:9px; color:var(--muted); margin-top:5px; text-align:center; }
+
+/* ── STAT LIST ── */
+.slist { display:flex; flex-direction:column; gap:8px; }
+.srow  { display:flex; align-items:center; gap:8px; }
+.sdot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.sname { flex:1; font-size:12px; }
+.snum  { font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; min-width:26px; text-align:right; }
+.sbar  { flex:1; height:5px; background:#f1f5f9; border-radius:3px; overflow:hidden; }
+.sfill { height:100%; border-radius:3px; }
+
+/* ── APP STATUS IN CARD ── */
+.app-row { display:flex; align-items:center; gap:6px; padding:3px 0; border-bottom:1px solid #f1f5f9; }
+.app-row:last-child { border-bottom:none; }
+.app-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.app-lbl { flex:1; font-size:11px; color:var(--muted); }
+.app-num { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; min-width:20px; text-align:right; }
+
+/* ── OPEN POSITIONS ── */
+.open-row { display:flex; align-items:baseline; gap:5px; padding:3px 0; border-bottom:1px solid #f1f5f9; }
+.open-row:last-child { border-bottom:none; }
+.open-dept { font-size:9px; font-weight:700; background:#f1f5f9; color:var(--muted);
+             border-radius:4px; padding:1px 5px; white-space:nowrap; flex-shrink:0; }
+.open-pos  { font-size:11px; color:var(--text); line-height:1.3; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>📋 Recruitment Dashboard 2026</h1>
+  <p>Recruitment + Recruitment_Tracking · 6 บริษัท</p>
+  <div class="kpi-row">
+    <div class="ki"><div class="kv">158</div><div class="kl">ใบสมัคร</div></div>
+    <div class="ki"><div class="kv" style="color:var(--open)">37</div><div class="kl">Open</div></div>
+    <div class="ki"><div class="kv" style="color:var(--hired)">30</div><div class="kl">Hired</div></div>
+    <div class="ki"><div class="kv" style="color:var(--hold)">20</div><div class="kl">On Hold</div></div>
+    <div class="ki"><div class="kv" style="color:var(--over)">22</div><div class="kl">Over KPI</div></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview')">ภาพรวม</div>
+  <div class="tab" onclick="switchTab('pipeline')">Pipeline ใบสมัคร</div>
+  <div class="tab" onclick="switchTab('tracking')">Tracking & KPI</div>
+</div>
+
+<!-- ══════════════════════════════════
+     VIEW: ภาพรวม
+══════════════════════════════════ -->
+<div class="view active" id="view-overview">
+
+  <div class="sec-label">สถานะ Req แยกบริษัท</div>
+  <div class="grid g6" style="margin-bottom:12px;">
+    <div class="co-card co-tmk">
+      <div class="co-name" style="color:var(--tmk)">TMK</div>
+      <div class="co-total">18 Req · 38 ใบ</div>
+      <div class="co-nums">
+        <div class="co-n"><div class="co-nv" style="color:var(--hired)">13</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--open)">3</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hold)">1</div><div class="co-nl">Hold</div></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:72%;background:var(--hired)"></div>
+        <div class="bar-seg" style="width:17%;background:var(--open)"></div>
+        <div class="bar-seg" style="width:11%;background:var(--hold)"></div>
+      </div>
+      <div class="co-days">เฉลี่ย 37.7 วัน</div>
+    </div>
+    <div class="co-card co-tmk2">
+      <div class="co-name" style="color:var(--tmk2)">TMK2012</div>
+      <div class="co-total">23 Req · 35 ใบ</div>
+      <div class="co-nums">
+        <div class="co-n"><div class="co-nv" style="color:var(--hired)">2</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--open)">20</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hold)">0</div><div class="co-nl">Hold</div></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:9%;background:var(--hired)"></div>
+        <div class="bar-seg" style="width:87%;background:var(--open)"></div>
+        <div class="bar-seg" style="width:4%;background:#e5e7eb"></div>
+      </div>
+      <div class="co-days">เฉลี่ย 23.2 วัน · ⚠️ Open มาก</div>
+    </div>
+    <div class="co-card co-ptc">
+      <div class="co-name" style="color:var(--ptc)">PTC</div>
+      <div class="co-total">24 Req · 39 ใบ</div>
+      <div class="co-nums">
+        <div class="co-n"><div class="co-nv" style="color:var(--hired)">7</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--open)">7</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hold)">8</div><div class="co-nl">Hold</div></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:30%;background:var(--hired)"></div>
+        <div class="bar-seg" style="width:30%;background:var(--open)"></div>
+        <div class="bar-seg" style="width:40%;background:var(--hold)"></div>
+      </div>
+      <div class="co-days">เฉลี่ย 43.8 วัน</div>
+    </div>
+    <div class="co-card co-ff">
+      <div class="co-name" style="color:var(--ff)">F&amp;F</div>
+      <div class="co-total">17 Req · 8 ใบ</div>
+      <div class="co-nums">
+        <div class="co-n"><div class="co-nv" style="color:var(--hired)">7</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--open)">6</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hold)">4</div><div class="co-nl">Hold</div></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:41%;background:var(--hired)"></div>
+        <div class="bar-seg" style="width:35%;background:var(--open)"></div>
+        <div class="bar-seg" style="width:24%;background:var(--hold)"></div>
+      </div>
+      <div class="co-days">เฉลี่ย 50 วัน · 🔴 ช้าสุด</div>
+    </div>
+    <div class="co-card co-pte">
+      <div class="co-name" style="color:var(--pte)">PTE</div>
+      <div class="co-total">6 Req · 7 ใบ</div>
+      <div class="co-nums">
+        <div class="co-n"><div class="co-nv" style="color:#d1d5db">0</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:#d1d5db">0</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hold)">6</div><div class="co-nl">Hold</div></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:100%;background:var(--hold)"></div>
+      </div>
+      <div class="co-days">ทุก Req รอดำเนินการ</div>
+    </div>
+    <div class="co-card co-clca">
+      <div class="co-name" style="color:var(--clca)">CLCA</div>
+      <div class="co-total">3 Req · 12 ใบ</div>
+      <div class="co-nums">
+        <div class="co-n"><div class="co-nv" style="color:var(--hired)">1</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--open)">1</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hold)">1</div><div class="co-nl">Hold</div></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:33%;background:var(--hired)"></div>
+        <div class="bar-seg" style="width:33%;background:var(--open)"></div>
+        <div class="bar-seg" style="width:34%;background:var(--hold)"></div>
+      </div>
+      <div class="co-days">เฉลี่ย 39 วัน</div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card">
+      <div class="card-title">Req Status แยกบริษัท</div>
+      <div class="chart-box"><canvas id="trackCoChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ใบสมัครรายเดือน 2026</div>
+      <div class="chart-box"><canvas id="monthChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">แหล่งที่มาผู้สมัคร</div>
+      <div class="chart-box"><canvas id="srcChart" height="220"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════
+     VIEW: Pipeline
+══════════════════════════════════ -->
+<div class="view" id="view-pipeline">
+
+  <div class="sec-label">สถานะใบสมัคร แยกบริษัท</div>
+  <div class="grid g6" style="margin-bottom:12px;">
+    <div class="card" style="border-top:3px solid var(--tmk);">
+      <div style="font-size:13px;font-weight:700;color:var(--tmk);margin-bottom:6px;">TMK <span style="font-size:10px;color:var(--muted);font-weight:400;">38 ใบ</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#22c55e"></span><span class="app-lbl">Hired</span><span class="app-num" style="color:#22c55e">13</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#6366f1"></span><span class="app-lbl">Interviewed</span><span class="app-num" style="color:#6366f1">10</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#f87171"></span><span class="app-lbl">Int. Failed</span><span class="app-num" style="color:#f87171">4</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#10b981"></span><span class="app-lbl">Offered</span><span class="app-num" style="color:#10b981">2</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#94a3b8"></span><span class="app-lbl">Applied/อื่นๆ</span><span class="app-num" style="color:#94a3b8">9</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--tmk2);">
+      <div style="font-size:13px;font-weight:700;color:var(--tmk2);margin-bottom:6px;">TMK2012 <span style="font-size:10px;color:var(--muted);font-weight:400;">35 ใบ</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#22c55e"></span><span class="app-lbl">Hired</span><span class="app-num" style="color:#22c55e">9</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#6366f1"></span><span class="app-lbl">Interviewed</span><span class="app-num" style="color:#6366f1">17</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#f87171"></span><span class="app-lbl">Int. Failed</span><span class="app-num" style="color:#f87171">4</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#10b981"></span><span class="app-lbl">Offered</span><span class="app-num" style="color:#10b981">5</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#94a3b8"></span><span class="app-lbl">Applied/อื่นๆ</span><span class="app-num" style="color:#94a3b8">0</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--ptc);">
+      <div style="font-size:13px;font-weight:700;color:var(--ptc);margin-bottom:6px;">PTC <span style="font-size:10px;color:var(--muted);font-weight:400;">39 ใบ</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#22c55e"></span><span class="app-lbl">Hired</span><span class="app-num" style="color:#22c55e">6</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#6366f1"></span><span class="app-lbl">Interviewed</span><span class="app-num" style="color:#6366f1">9</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#f87171"></span><span class="app-lbl">Int. Failed</span><span class="app-num" style="color:#f87171">16</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#10b981"></span><span class="app-lbl">Offered</span><span class="app-num" style="color:#10b981">3</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#94a3b8"></span><span class="app-lbl">Applied/อื่นๆ</span><span class="app-num" style="color:#94a3b8">5</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--clca);">
+      <div style="font-size:13px;font-weight:700;color:var(--clca);margin-bottom:6px;">CLCA <span style="font-size:10px;color:var(--muted);font-weight:400;">12 ใบ</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#22c55e"></span><span class="app-lbl">Hired</span><span class="app-num" style="color:#22c55e">1</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#6366f1"></span><span class="app-lbl">Interviewed</span><span class="app-num" style="color:#6366f1">3</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#f87171"></span><span class="app-lbl">Int. Failed</span><span class="app-num" style="color:#f87171">6</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#10b981"></span><span class="app-lbl">Offered</span><span class="app-num" style="color:#10b981">1</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#94a3b8"></span><span class="app-lbl">Applied/อื่นๆ</span><span class="app-num" style="color:#94a3b8">1</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--ff);">
+      <div style="font-size:13px;font-weight:700;color:var(--ff);margin-bottom:6px;">F&amp;F <span style="font-size:10px;color:var(--muted);font-weight:400;">8 ใบ</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#22c55e"></span><span class="app-lbl">Hired</span><span class="app-num" style="color:#22c55e">5</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#6366f1"></span><span class="app-lbl">Interviewed</span><span class="app-num" style="color:#6366f1">0</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#f87171"></span><span class="app-lbl">Int. Failed</span><span class="app-num" style="color:#f87171">0</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#10b981"></span><span class="app-lbl">Offered</span><span class="app-num" style="color:#10b981">1</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#94a3b8"></span><span class="app-lbl">Applied/อื่นๆ</span><span class="app-num" style="color:#94a3b8">2</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pte);">
+      <div style="font-size:13px;font-weight:700;color:var(--pte);margin-bottom:6px;">PTE <span style="font-size:10px;color:var(--muted);font-weight:400;">7 ใบ</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#22c55e"></span><span class="app-lbl">Hired</span><span class="app-num" style="color:#22c55e">0</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#6366f1"></span><span class="app-lbl">Interviewed</span><span class="app-num" style="color:#6366f1">2</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#f87171"></span><span class="app-lbl">Int. Failed</span><span class="app-num" style="color:#f87171">4</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#10b981"></span><span class="app-lbl">Offered</span><span class="app-num" style="color:#10b981">0</span></div>
+      <div class="app-row"><span class="app-dot" style="background:#94a3b8"></span><span class="app-lbl">Applied/อื่นๆ</span><span class="app-num" style="color:#94a3b8">1</span></div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card">
+      <div class="card-title">Pipeline ทั้งหมด (158 ใบ)</div>
+      <div class="chart-box"><canvas id="pipeChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ผลสัมภาษณ์</div>
+      <div class="slist">
+        <div class="srow"><div class="sdot" style="background:#22c55e"></div><div class="sname">ผ่านสัมภาษณ์ มาเริ่มงาน</div><div class="snum" style="color:#22c55e">33</div><div class="sbar"><div class="sfill" style="width:100%;background:#22c55e"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#6366f1"></div><div class="sname">เก็บประวัติรอเปรียบเทียบ</div><div class="snum" style="color:#6366f1">27</div><div class="sbar"><div class="sfill" style="width:82%;background:#6366f1"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#ef4444"></div><div class="sname">ปฏิเสธเริ่มงาน</div><div class="snum" style="color:#ef4444">12</div><div class="sbar"><div class="sfill" style="width:36%;background:#ef4444"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#f59e0b"></div><div class="sname">ต้นสังกัดไม่สนใจ/ทักษะไม่ผ่าน</div><div class="snum" style="color:#f59e0b">11</div><div class="sbar"><div class="sfill" style="width:33%;background:#f59e0b"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#06b6d4"></div><div class="sname">รอเริ่มงาน</div><div class="snum" style="color:#06b6d4">8</div><div class="sbar"><div class="sfill" style="width:24%;background:#06b6d4"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#94a3b8"></div><div class="sname">ไม่มีตำแหน่งรองรับ</div><div class="snum" style="color:#94a3b8">7</div><div class="sbar"><div class="sfill" style="width:21%;background:#94a3b8"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#f472b6"></div><div class="sname">ฐานเงินเดือนสูง</div><div class="snum" style="color:#f472b6">5</div><div class="sbar"><div class="sfill" style="width:15%;background:#f472b6"></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">เหตุผลการเปิด Req</div>
+      <div class="slist">
+        <div class="srow"><div class="sdot" style="background:#ef4444"></div><div class="sname">ทดแทนพนักงานลาออก</div><div class="snum" style="color:#ef4444">63</div><div class="sbar"><div class="sfill" style="width:100%;background:#ef4444"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#3b82f6"></div><div class="sname">ขอเพิ่มอัตรากำลัง</div><div class="snum" style="color:#3b82f6">23</div><div class="sbar"><div class="sfill" style="width:37%;background:#3b82f6"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:#f59e0b"></div><div class="sname">ทดแทนพนักงานโอนย้าย</div><div class="snum" style="color:#f59e0b">5</div><div class="sbar"><div class="sfill" style="width:8%;background:#f59e0b"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════
+     VIEW: Tracking & KPI
+══════════════════════════════════ -->
+<div class="view" id="view-tracking">
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">เวลาเฉลี่ยสรรหา vs Target 15 วัน</div>
+      <div class="chart-box"><canvas id="daysChart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">KPI Status แยกบริษัท</div>
+      <div class="chart-box"><canvas id="kpiChart" height="220"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">สรุป KPI ทั้งหมด</div>
+      <div class="chart-box"><canvas id="kpiDonut" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">อัตราบรรจุสำเร็จ (Hired/Total Req)</div>
+      <div class="slist">
+        <div class="srow"><div class="sdot" style="background:var(--tmk)"></div><div class="sname">TMK</div><div class="snum" style="color:var(--tmk)">72%</div><div class="sbar"><div class="sfill" style="width:72%;background:var(--tmk)"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:var(--ff)"></div><div class="sname">F&amp;F</div><div class="snum" style="color:var(--ff)">41%</div><div class="sbar"><div class="sfill" style="width:41%;background:var(--ff)"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:var(--clca)"></div><div class="sname">CLCA</div><div class="snum" style="color:var(--clca)">33%</div><div class="sbar"><div class="sfill" style="width:33%;background:var(--clca)"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:var(--ptc)"></div><div class="sname">PTC</div><div class="snum" style="color:var(--ptc)">29%</div><div class="sbar"><div class="sfill" style="width:29%;background:var(--ptc)"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:var(--tmk2)"></div><div class="sname">TMK2012</div><div class="snum" style="color:var(--tmk2)">9%</div><div class="sbar"><div class="sfill" style="width:9%;background:var(--tmk2)"></div></div></div>
+        <div class="srow"><div class="sdot" style="background:var(--pte)"></div><div class="sname">PTE</div><div class="snum" style="color:var(--pte)">0%</div><div class="sbar"><div class="sfill" style="width:1%;background:var(--pte)"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label" style="margin-top:4px;">🔵 ตำแหน่งที่ยังค้างอยู่ (Open) · 37 ตำแหน่ง</div>
+  <div class="grid g6">
+    <div class="card" style="border-top:3px solid var(--tmk);">
+      <div style="font-size:12px;font-weight:700;color:var(--tmk);margin-bottom:6px;">TMK <span style="font-size:10px;color:var(--muted);font-weight:400;">3 ตำแหน่ง</span></div>
+      <div class="open-row"><span class="open-dept">MN</span><span class="open-pos">เจ้าหน้าที่ซ่อมบำรุง ×2</span></div>
+      <div class="open-row"><span class="open-dept">ผลิต</span><span class="open-pos">หัวหน้าฝ่ายผลิต (Sup)</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--tmk2);">
+      <div style="font-size:12px;font-weight:700;color:var(--tmk2);margin-bottom:6px;">TMK2012 <span style="font-size:10px;color:var(--muted);font-weight:400;">20 ตำแหน่ง</span></div>
+      <div class="open-row"><span class="open-dept">Phononic</span><span class="open-pos">Operator ×8</span></div>
+      <div class="open-row"><span class="open-dept">Phononic</span><span class="open-pos">Engineer / Equipment Eng / Process Eng</span></div>
+      <div class="open-row"><span class="open-dept">Phononic</span><span class="open-pos">Technician / IT / พนักงานตัด ×2</span></div>
+      <div class="open-row"><span class="open-dept">MC</span><span class="open-pos">พนักงานคลังสินค้า</span></div>
+      <div class="open-row"><span class="open-dept">MN</span><span class="open-pos">ช่างซ่อมบำรุงทั่วไป</span></div>
+      <div class="open-row"><span class="open-dept">EN-2/5</span><span class="open-pos">Operator ×2</span></div>
+      <div class="open-row"><span class="open-dept">Engineer</span><span class="open-pos">ENG-LAB</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--ptc);">
+      <div style="font-size:12px;font-weight:700;color:var(--ptc);margin-bottom:6px;">PTC <span style="font-size:10px;color:var(--muted);font-weight:400;">7 ตำแหน่ง</span></div>
+      <div class="open-row"><span class="open-dept">TC</span><span class="open-pos">จนท.เทคนิคบริการ ×4</span></div>
+      <div class="open-row"><span class="open-dept">MK</span><span class="open-pos">จนท.ขับรถส่วนกลาง</span></div>
+      <div class="open-row"><span class="open-dept">PU</span><span class="open-pos">จนท.จัดซื้อต่างประเทศ</span></div>
+      <div class="open-row"><span class="open-dept">TS</span><span class="open-pos">Tech Service Officer (CN)</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--ff);">
+      <div style="font-size:12px;font-weight:700;color:var(--ff);margin-bottom:6px;">F&amp;F <span style="font-size:10px;color:var(--muted);font-weight:400;">6 ตำแหน่ง</span></div>
+      <div class="open-row"><span class="open-dept">DEL</span><span class="open-pos">จนท.ติดรถส่งสินค้า ×4</span></div>
+      <div class="open-row"><span class="open-dept">DEL</span><span class="open-pos">จนท.ขับรถส่งสินค้า</span></div>
+      <div class="open-row"><span class="open-dept">WH</span><span class="open-pos">จนท.คลังสินค้า</span></div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pte);opacity:.55;">
+      <div style="font-size:12px;font-weight:700;color:var(--pte);margin-bottom:6px;">PTE <span style="font-size:10px;color:var(--muted);font-weight:400;">0 ตำแหน่ง</span></div>
+      <div style="font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">ทุก Req ยัง On Hold</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--clca);">
+      <div style="font-size:12px;font-weight:700;color:var(--clca);margin-bottom:6px;">CLCA <span style="font-size:10px;color:var(--muted);font-weight:400;">1 ตำแหน่ง</span></div>
+      <div class="open-row"><span class="open-dept">HR</span><span class="open-pos">เจ้าหน้าที่บุคคล</span></div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- end .page -->
+
+<script>
+Chart.defaults.color = '#718096';
+Chart.defaults.font.family = "'IBM Plex Sans Thai', sans-serif";
+Chart.defaults.font.size = 11;
+
+const charts = {};
+function mk(id, cfg){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), cfg);
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active', ['overview','pipeline','tracking'][i]===name);
+  });
+  document.querySelectorAll('.view').forEach(v=>{
+    v.classList.toggle('active', v.id==='view-'+name);
+  });
+  setTimeout(()=>initCharts(name), 50);
+}
+
+function initCharts(view){
+  if(view==='overview'){
+    mk('trackCoChart',{type:'bar',data:{
+      labels:['TMK','TMK2012','PTC','F&F','PTE','CLCA'],
+      datasets:[
+        {label:'Hired',data:[13,2,7,7,0,1],backgroundColor:'#22c55e',borderRadius:4},
+        {label:'Open', data:[3,20,7,6,0,1],backgroundColor:'#3b82f6',borderRadius:4},
+        {label:'Hold', data:[1,0,8,4,6,1], backgroundColor:'#f59e0b',borderRadius:4},
+      ]
+    },options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{position:'top',labels:{boxWidth:9,padding:8}}},
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#f1f5f9'},beginAtZero:true}}}
+    });
+    mk('monthChart',{type:'bar',data:{
+      labels:['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.'],
+      datasets:[{label:'ใบสมัคร',data:[32,13,28,29,37],
+        backgroundColor:['#6366f1','#a78bfa','#06b6d4','#f59e0b','#10b981'],
+        borderRadius:5,borderSkipped:false}]
+    },options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:'#f1f5f9'},beginAtZero:true}}}
+    });
+    mk('srcChart',{type:'doughnut',data:{
+      labels:['Jobthai','ไม่ระบุ','แนะนำ/บอกต่อ','Facebook','อื่นๆ'],
+      datasets:[{data:[65,37,24,7,5],
+        backgroundColor:['#6366f1','#94a3b8','#10b981','#3b82f6','#f59e0b'],
+        borderWidth:2,borderColor:'#fff',hoverOffset:5}]
+    },options:{responsive:true,maintainAspectRatio:true,cutout:'58%',
+      plugins:{legend:{position:'bottom',labels:{padding:8,boxWidth:9}}}}
+    });
+  }
+  if(view==='pipeline'){
+    mk('pipeChart',{type:'bar',data:{
+      labels:['Applied','Screened Failed','Interviewed','Interview Failed','Offered','Hired','Withdrawn'],
+      datasets:[{data:[8,3,41,34,12,34,4],
+        backgroundColor:['#94a3b8','#ef4444','#6366f1','#f87171','#10b981','#22c55e','#f59e0b'],
+        borderRadius:5,borderSkipped:false}]
+    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#f1f5f9'},beginAtZero:true},y:{grid:{display:false}}}}
+    });
+  }
+  if(view==='tracking'){
+    mk('daysChart',{type:'bar',data:{
+      labels:['TMK2012','TMK','CLCA','PTC','F&F'],
+      datasets:[
+        {label:'เฉลี่ย (วัน)',data:[23.2,37.7,39.0,43.8,50.0],
+         backgroundColor:['#22c55e','#22c55e','#f59e0b','#ef4444','#ef4444'],
+         borderRadius:5,borderSkipped:false},
+        {label:'Target 15 วัน',data:[15,15,15,15,15],
+         type:'line',borderColor:'#ef4444',borderWidth:1.5,borderDash:[4,4],
+         pointRadius:0,fill:false,backgroundColor:'transparent'}
+      ]
+    },options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{position:'top',labels:{boxWidth:9,padding:8}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:'#f1f5f9'},beginAtZero:true,max:60,ticks:{callback:v=>v+'d'}}}}
+    });
+    mk('kpiChart',{type:'bar',data:{
+      labels:['TMK','TMK2012','PTC','F&F','PTE','CLCA'],
+      datasets:[
+        {label:'Within KPI',data:[12,21,17,8,6,2],backgroundColor:'#22c55e',borderRadius:4},
+        {label:'Over KPI',  data:[6,1,7,7,0,1],  backgroundColor:'#ef4444',borderRadius:4},
+      ]
+    },options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{position:'top',labels:{boxWidth:9,padding:8}}},
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#f1f5f9'},beginAtZero:true}}}
+    });
+    mk('kpiDonut',{type:'doughnut',data:{
+      labels:['Within KPI (66)','Over KPI (22)'],
+      datasets:[{data:[66,22],backgroundColor:['#22c55e','#ef4444'],
+        borderWidth:3,borderColor:'#fff',hoverOffset:5}]
+    },options:{responsive:true,maintainAspectRatio:true,cutout:'62%',
+      plugins:{legend:{position:'bottom',labels:{padding:10,boxWidth:10}}}}
+    });
+  }
+}
+
+initCharts('overview');
+</script>
+</body>
+</html>
