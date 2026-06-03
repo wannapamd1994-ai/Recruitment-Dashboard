@@ -84,8 +84,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
   <p>อัปเดตล่าสุด: มิถุนายน 2569 · Recruitment + Recruitment_Tracking · 6 บริษัท</p>
   <div class="kpi-row">
     <div class="ki"><div class="kv">181</div><div class="kl">ใบสมัคร</div></div>
-    <div class="ki"><div class="kv" style="color:var(--open)">43</div><div class="kl">Open</div></div>
-    <div class="ki"><div class="kv" style="color:var(--hired)">66</div><div class="kl">Hired</div></div>
+    <div class="ki"><div class="kv" style="color:var(--open)">40</div><div class="kl">Open</div></div>
+    <div class="ki"><div class="kv" style="color:var(--hired)">69</div><div class="kl">Hired</div></div>
     <div class="ki"><div class="kv" style="color:var(--hold)">18</div><div class="kl">On Hold</div></div>
     <div class="ki"><div class="kv" style="color:var(--over)">42</div><div class="kl">Over KPI</div></div>
   </div>
@@ -105,13 +105,13 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
       <div class="co-name" style="color:var(--tmk)">TMK</div>
       <div class="co-total">36 Req · 62 ใบ</div>
       <div class="co-nums">
-        <div class="co-n"><div class="co-nv" style="color:var(--hired)">24</div><div class="co-nl">Hired</div></div>
-        <div class="co-n"><div class="co-nv" style="color:var(--open)">11</div><div class="co-nl">Open</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--hired)">27</div><div class="co-nl">Hired</div></div>
+        <div class="co-n"><div class="co-nv" style="color:var(--open)">8</div><div class="co-nl">Open</div></div>
         <div class="co-n"><div class="co-nv" style="color:var(--hold)">1</div><div class="co-nl">Hold</div></div>
       </div>
       <div class="bar-track">
-        <div style="width:67%;background:var(--hired)"></div>
-        <div style="width:30%;background:var(--open)"></div>
+        <div style="width:75%;background:var(--hired)"></div>
+        <div style="width:22%;background:var(--open)"></div>
         <div style="width:3%;background:var(--hold)"></div>
       </div>
       <div class="co-days">เฉลี่ย 29.2 วัน</div>
@@ -326,13 +326,13 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
     </div>
   </div>
 
-  <div class="sec-label">🔵 ตำแหน่งที่ยังค้างอยู่ (Open) · 43 ตำแหน่ง</div>
+  <div class="sec-label">🔵 ตำแหน่งที่ยังค้างอยู่ (Open) · 40 ตำแหน่ง</div>
   <div class="grid g6">
     <div class="card" style="border-top:3px solid var(--tmk);">
-      <div style="font-size:12px;font-weight:700;color:var(--tmk);margin-bottom:6px;">TMK <span style="font-size:10px;color:var(--muted);font-weight:400;">11 ตำแหน่ง</span></div>
+      <div style="font-size:12px;font-weight:700;color:var(--tmk);margin-bottom:6px;">TMK <span style="font-size:10px;color:var(--muted);font-weight:400;">8 ตำแหน่ง</span></div>
       <div class="open-row"><span class="open-dept">MN</span><span class="open-pos">เจ้าหน้าที่ซ่อมบำรุง ×4</span></div>
       <div class="open-row"><span class="open-dept">ผลิต</span><span class="open-pos">หัวหน้าฝ่ายผลิต (Sup)</span></div>
-      <div class="open-row"><span class="open-dept">ผลิต</span><span class="open-pos">พนักงานฝ่ายผลิต ×4</span></div>
+      <div class="open-row"><span class="open-dept">ผลิต</span><span class="open-pos">พนักงานฝ่ายผลิต ×1</span></div>
       <div class="open-row"><span class="open-dept">MC</span><span class="open-pos">เจ้าหน้าที่วางแผนการผลิต ×2</span></div>
     </div>
     <div class="card" style="border-top:3px solid var(--tmk2);">
@@ -390,8 +390,8 @@ function initCharts(view){
     mk('trackCoChart',{type:'bar',data:{
       labels:['TMK','TMK2012','PTC','F&F','PTE','CLCA'],
       datasets:[
-        {label:'Hired',data:[24,19,13,8,0,1],backgroundColor:'#22c55e',borderRadius:4},
-        {label:'Open', data:[11,9,11,6,5,1], backgroundColor:'#3b82f6',borderRadius:4},
+        {label:'Hired',data:[27,19,13,8,0,1],backgroundColor:'#22c55e',borderRadius:4},
+        {label:'Open', data:[8,9,11,6,5,1], backgroundColor:'#3b82f6',borderRadius:4},
         {label:'Hold', data:[1,1,8,5,2,1],   backgroundColor:'#f59e0b',borderRadius:4},
       ]
     },options:{responsive:true,maintainAspectRatio:true,
